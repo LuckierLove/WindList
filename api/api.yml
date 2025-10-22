@@ -1,0 +1,759 @@
+openapi: 3.0.1
+info:
+  title: "ToDoList API"
+  description: "一个功能丰富、精致的 ToDoList 项目的后端 API 规范。基于 Kotlin SpringBoot + Spring Security + PostgreSQL。"
+  version: "1.0.0"
+
+servers:
+  - url: "/api"
+    description: "API 基础路径"
+
+# 1. 定义 API 标签（用于分组）
+tags:
+  - name: "Auth"
+    description: "用户认证与注册"
+  - name: "ToDo Lists"
+    description: "待办事项清单管理"
+  - name: "ToDo Items"
+    description: "待办事项（任务）管理"
+  - name: "Sub-Tasks"
+    description: "子任务管理"
+  - name: "Tags"
+    description: "标签管理"
+
+# 2. 定义安全方案 (JWT)
+components:
+  securitySchemes:
+    BearerAuth:
+      type: "http"
+      scheme: "bearer"
+      bearerFormat: "JWT"
+      description: "在请求头的 Authorization 字段中输入 'Bearer {token}'"
+
+  # 3. 定义可重用的数据模型 (Schemas / DTOs)
+  schemas:
+    # --- Auth Schemas ---
+    UserRegisterRequest:
+      type: "object"
+      required: [ "username", "email", "password" ]
+      properties:
+        username:
+          type: "string"
+          example: "johndoe"
+        email:
+          type: "string"
+          format: "email"
+          example: "john.doe@example.com"
+        password:
+          type: "string"
+          format: "password"
+          example: "s3crEtP@ssword"
+    
+    UserLoginRequest:
+      type: "object"
+      required: [ "username", "password" ]
+      properties:
+        username:
+          type: "string"
+          example: "johndoe"
+        password:
+          type: "string"
+          format: "password"
+          example: "s3crEtP@ssword"
+
+    UserResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        username:
+          type: "string"
+        email:
+          type: "string"
+          format: "email"
+        nickname:
+          type: "string"
+        avatar_url:
+          type: "string"
+          format: "uri"
+
+    LoginResponse:
+      type: "object"
+      properties:
+        token:
+          type: "string"
+          description: "JWT 认证令牌"
+        user:
+          $ref: "#/components/schemas/UserResponse"
+
+    # --- Enum Schemas (PostgreSQL ENUMs) ---
+    TaskStatus:
+      type: "string"
+      enum: [ "PENDING", "IN_PROGRESS", "COMPLETED", "ARCHIVED" ]
+      default: "PENDING"
+
+    TaskPriority:
+      type: "string"
+      enum: [ "LOW", "MEDIUM", "HIGH" ]
+      default: "MEDIUM"
+
+    # --- ToDo List Schemas ---
+    TodoListRequest:
+      type: "object"
+      required: [ "name" ]
+      properties:
+        name:
+          type: "string"
+          maxLength: 100
+          example: "我的工作清单"
+        description:
+          type: "string"
+          example: "所有与工作相关的任务"
+
+    TodoListResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        userId:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+        description:
+          type: "string"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+
+    # --- Tag Schemas ---
+    TagRequest:
+      type: "object"
+      required: [ "name" ]
+      properties:
+        name:
+          type: "string"
+          maxLength: 50
+          example: "重要"
+        color:
+          type: "string"
+          maxLength: 7
+          example: "#FF0000"
+
+    TagResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        userId:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+        color:
+          type: "string"
+        createdAt:
+          type: "string"
+          format: "date-time"
+
+    # --- Sub-Task Schemas ---
+    SubTaskRequest:
+      type: "object"
+      required: [ "title" ]
+      properties:
+        title:
+          type: "string"
+          maxLength: 255
+          example: "第一步：分析需求"
+        completed:
+          type: "boolean"
+          default: false
+
+    SubTaskResponse:
+      type: "object"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        itemId:
+          type: "integer"
+          format: "int64"
+        title:
+          type: "string"
+        completed:
+          type: "boolean"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+
+    # --- ToDo Item Schemas ---
+    TodoItemCreateRequest:
+      type: "object"
+      required: [ "title" ]
+      properties:
+        title:
+          type: "string"
+          maxLength: 255
+          example: "完成项目报告"
+        content:
+          type: "string"
+          example: "报告需要包含A、B、C三点..."
+        priority:
+          $ref: "#/components/schemas/TaskPriority"
+        dueDate:
+          type: "string"
+          format: "date-time"
+          example: "2025-10-30T10:00:00Z"
+
+    TodoItemUpdateRequest:
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          maxLength: 255
+        content:
+          type: "string"
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        priority:
+          $ref: "#/components/schemas/TaskPriority"
+        dueDate:
+          type: "string"
+          format: "date-time"
+
+    TodoItemResponse:
+      type: "object"
+      description: "完整的待办事项详情，包含子任务和标签"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        listId:
+          type: "integer"
+          format: "int64"
+        title:
+          type: "string"
+        content:
+          type: "string"
+        status:
+          $ref: "#/components/schemas/TaskStatus"
+        priority:
+          $ref: "#/components/schemas/TaskPriority"
+        dueDate:
+          type: "string"
+          format: "date-time"
+        completedAt:
+          type: "string"
+          format: "date-time"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+        subTasks:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/SubTaskResponse"
+        tags:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TagResponse"
+
+    PagedTodoItemResponse:
+      type: "object"
+      description: "待办事项的分页响应"
+      properties:
+        content:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TodoItemResponse"
+        totalPages:
+          type: "integer"
+        totalElements:
+          type: "integer"
+          format: "int64"
+
+    # --- Error Schema ---
+    ErrorResponse:
+      type: "object"
+      properties:
+        status:
+          type: "integer"
+          example: 404
+        message:
+          type: "string"
+          example: "Resource Not Found"
+        errors:
+          type: "array"
+          items:
+            type: "string"
+          example: [ "Title cannot be blank" ]
+
+# 4. 全局安全设置：所有接口默认需要 JWT
+security:
+  - BearerAuth: [ ]
+
+# 5. 定义所有 API 路径 (Paths)
+paths:
+  # --- 1. Auth ---
+  /auth/register:
+    post:
+      tags: [ "Auth" ]
+      summary: "用户注册"
+      security: [ ] # 注册接口不需要认证
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterRequest"
+      responses:
+        "201":
+          description: "注册成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "400":
+          description: "请求无效（例如：用户名已存在、邮箱格式错误）"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      tags: [ "Auth" ]
+      summary: "用户登录"
+      security: [ ] # 登录接口不需要认证
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginRequest"
+      responses:
+        "200":
+          description: "登录成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: "认证失败（用户名或密码错误）"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      tags: [ "Auth" ]
+      summary: "获取当前登录用户信息"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "401":
+          description: "未认证"
+
+  # --- 2. ToDo Lists ---
+  /lists:
+    post:
+      tags: [ "ToDo Lists" ]
+      summary: "创建新清单"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoListRequest"
+      responses:
+        "201":
+          description: "创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoListResponse"
+        "400":
+          description: "验证失败"
+        "401":
+          description: "未认证"
+
+    get:
+      tags: [ "ToDo Lists" ]
+      summary: "获取当前用户的所有清单"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/TodoListResponse"
+        "401":
+          description: "未认证"
+
+  /lists/{listId}:
+    parameters:
+      - name: "listId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    get:
+      tags: [ "ToDo Lists" ]
+      summary: "获取单个清单详情"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoListResponse"
+        "401":
+          description: "未认证"
+        "403":
+          description: "无权限（非清单所有者）"
+        "404":
+          description: "清单未找到"
+    put:
+      tags: [ "ToDo Lists" ]
+      summary: "更新清单"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoListRequest"
+      responses:
+        "200":
+          description: "更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoListResponse"
+        "400":
+          description: "验证失败"
+        "403":
+          description: "无权限"
+        "404":
+          description: "清单未找到"
+    delete:
+      tags: [ "ToDo Lists" ]
+      summary: "删除清单"
+      responses:
+        "204":
+          description: "删除成功"
+        "403":
+          description: "无权限"
+        "404":
+          description: "清单未找到"
+
+  # --- 3. ToDo Items ---
+  /lists/{listId}/items:
+    parameters:
+      - name: "listId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    post:
+      tags: [ "ToDo Items" ]
+      summary: "在清单中创建新任务"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoItemCreateRequest"
+      responses:
+        "201":
+          description: "创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoItemResponse"
+        "403":
+          description: "无权限操作此清单"
+    
+    get:
+      tags: [ "ToDo Items" ]
+      summary: "获取清单中的所有任务（支持分页和过滤）"
+      parameters:
+        - name: "page"
+          in: "query"
+          schema:
+            type: "integer"
+            default: 0
+        - name: "size"
+          in: "query"
+          schema:
+            type: "integer"
+            default: 20
+        - name: "sort"
+          in: "query"
+          schema:
+            type: "string"
+            example: "dueDate,asc"
+        - name: "status"
+          in: "query"
+          schema:
+            $ref: "#/components/schemas/TaskStatus"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedTodoItemResponse"
+        "403":
+          description: "无权限"
+
+  /items/{itemId}:
+    parameters:
+      - name: "itemId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    get:
+      tags: [ "ToDo Items" ]
+      summary: "获取特定任务详情（包含子任务和标签）"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoItemResponse"
+        "403":
+          description: "无权限"
+        "404":
+          description: "任务未找到"
+    put:
+      tags: [ "ToDo Items" ]
+      summary: "更新任务"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TodoItemUpdateRequest"
+      responses:
+        "200":
+          description: "更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TodoItemResponse"
+        "403":
+          description: "无权限"
+        "404":
+          description: "任务未找到"
+    delete:
+      tags: [ "ToDo Items" ]
+      summary: "删除任务"
+      responses:
+        "204":
+          description: "删除成功"
+        "403":
+          description: "无权限"
+        "404":
+          description: "任务未找到"
+
+  # --- 4. Sub-Tasks ---
+  /items/{itemId}/subtasks:
+    parameters:
+      - name: "itemId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    post:
+      tags: [ "Sub-Tasks" ]
+      summary: "为任务添加子任务"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubTaskRequest"
+      responses:
+        "201":
+          description: "创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubTaskResponse"
+        "403":
+          description: "无权限"
+        "404":
+          description: "父任务未找到"
+
+  /subtasks/{subTaskId}:
+    parameters:
+      - name: "subTaskId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    put:
+      tags: [ "Sub-Tasks" ]
+      summary: "更新子任务（例如：标题、完成状态）"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubTaskRequest" # 复用创建请求
+      responses:
+        "200":
+          description: "更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubTaskResponse"
+        "403":
+          description: "无权限"
+        "404":
+          description: "子任务未找到"
+    delete:
+      tags: [ "Sub-Tasks" ]
+      summary: "删除子任务"
+      responses:
+        "204":
+          description: "删除成功"
+        "403":
+          description: "无权限"
+        "404":
+          description: "子任务未找到"
+
+  # --- 5. Tags ---
+  /tags:
+    get:
+      tags: [ "Tags" ]
+      summary: "获取当前用户的所有标签"
+      responses:
+        "200":
+          description: "成功"
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/TagResponse"
+    post:
+      tags: [ "Tags" ]
+      summary: "创建新标签"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagRequest"
+      responses:
+        "201":
+          description: "创建成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+        "400":
+          description: "验证失败（例如：同名标签已存在）"
+
+  /tags/{tagId}:
+    parameters:
+      - name: "tagId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    put:
+      tags: [ "Tags" ]
+      summary: "更新标签"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TagRequest"
+      responses:
+        "200":
+          description: "更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TagResponse"
+        "403":
+          description: "无权限"
+        "404":
+          description: "标签未找到"
+    delete:
+      tags: [ "Tags" ]
+      summary: "删除标签（将自动从所有任务中移除）"
+      responses:
+        "204":
+          description: "删除成功"
+        "403":
+          description: "无权限"
+        "404":
+          description: "标签未找到"
+
+  # --- 6. Tag <-> Item Association ---
+  /items/{itemId}/tags/{tagId}:
+    parameters:
+      - name: "itemId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+      - name: "tagId"
+        in: "path"
+        required: true
+        schema:
+          type: "integer"
+          format: "int64"
+    post:
+      tags: [ "Tags" ]
+      summary: "为任务添加标签"
+      responses:
+        "201":
+          description: "关联成功"
+        "400":
+          description: "已关联"
+        "403":
+          description: "无权限（例如：任务和标签不属于同一用户）"
+        "404":
+          description: "任务或标签未找到"
+    delete:
+      tags: [ "Tags" ]
+      summary: "从任务移除标签"
+      responses:
+        "204":
+          description: "移除成功"
+        "403":
+          description: "无权限"
+        "404":
+          description: "任务或标签未找到"
