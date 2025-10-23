@@ -10,4 +10,9 @@ interface UserService {
      * 用户注册
      */
     fun register(userDTO: UserDTO)
+
+    /**
+     * 用户登录
+     */
+    fun login(userDTO: UserDTO): String
 }

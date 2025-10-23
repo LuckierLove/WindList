@@ -1,6 +1,7 @@
 package cn.luckierlove.windlist.entity
 
 import java.time.LocalDateTime
+import java.util.Date
 
 /**
  * 标签表
@@ -29,5 +30,5 @@ data class Tags(
     /**
      * 创建时间
      */
-    var createAt: LocalDateTime?,
+    var createAt: Date?,
 )

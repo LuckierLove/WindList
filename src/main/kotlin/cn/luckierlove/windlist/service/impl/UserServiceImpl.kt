@@ -1,6 +1,8 @@
 package cn.luckierlove.windlist.service.impl
 
 import cn.luckierlove.windlist.common.exception.AuthException
+import cn.luckierlove.windlist.common.utils.JwtUtil
+import cn.luckierlove.windlist.constant.JwtClaimsConstant
 import cn.luckierlove.windlist.constant.UserConstant
 import cn.luckierlove.windlist.constant.UserMessageConstant
 import cn.luckierlove.windlist.entity.Users
@@ -27,6 +29,8 @@ class UserServiceImpl : UserService, ServiceImpl<UserMapper, Users>() {
     private lateinit var userMapper: UserMapper
     @Resource
     private lateinit var userRoleMapper: UserRoleMapper
+    @Resource
+    private lateinit var jwtUtil: JwtUtil
     /**
      * 用户注册
      */
@@ -55,5 +59,29 @@ class UserServiceImpl : UserService, ServiceImpl<UserMapper, Users>() {
         }
         userMapper.insert(user)
         userRoleMapper.saveUserRole(user.id!!, UserConstant.DEFAULT_ROLE)
+    }
+
+    /**
+     * 用户登录
+     */
+    override fun login(userDTO: UserDTO): String{
+        if(userDTO.username == null || userDTO.username!!.isEmpty())
+            throw AuthException(UserMessageConstant.USERNAME_EMPTY)
+
+        if(userDTO.password == null || userDTO.password!!.isEmpty())
+            throw AuthException(UserMessageConstant.PASSWORD_EMPTY)
+
+        val user = userMapper.findByUsername(userDTO.username!!)
+
+
+        val hashedPassword = DigestUtils.md5DigestAsHex(userDTO.password!!.toByteArray())
+        if(user!!.password != hashedPassword)
+            throw AuthException(UserMessageConstant.INVALID_PASSWORD)
+
+        // 登录成功，返回用户信息或生成token等操作
+        val token = jwtUtil.createJWT(mutableMapOf(
+            JwtClaimsConstant.USER_ID to user.id!!,
+        ))
+        return token
     }
 }

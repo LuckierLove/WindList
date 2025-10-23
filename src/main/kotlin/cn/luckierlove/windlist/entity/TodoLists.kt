@@ -1,6 +1,7 @@
 package cn.luckierlove.windlist.entity
 
 import java.time.LocalDateTime
+import java.util.Date
 
 /**
  * 待办事项清单表
@@ -29,10 +30,10 @@ data class TodoLists(
     /**
      * 创建时间
      */
-    var createdAt: LocalDateTime?,
+    var createdAt: Date?,
 
     /**
      * 修改时间
      */
-    var updatedAt: LocalDateTime?,
+    var updatedAt: Date?,
 )

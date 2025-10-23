@@ -17,10 +17,8 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleException(ex: Exception): Result.Response<String> {
-        var cause: Throwable? = ex
-        while (cause != null) {
-            if (cause is org.postgresql.util.PSQLException) {
-                val msg = cause.message ?: break
+            if (ex is org.postgresql.util.PSQLException) {
+                val msg = ex.message ?: return Result.error("未知错误")
 
                 // 优先从 "Key (username)=(johndoe) already exists." 提取字段名
                 val keyRegex = Regex("Key \\(([^)]+)\\)")
@@ -51,8 +49,6 @@ class GlobalExceptionHandler {
 
                 return Result.error("数据已存在，违反唯一约束")
             }
-            cause = cause.cause
-        }
 
         return Result.error(ex.message ?: "未知错误")
     }

@@ -4,6 +4,7 @@ package cn.luckierlove.windlist.entity
 import com.baomidou.mybatisplus.annotation.IdType
 import com.baomidou.mybatisplus.annotation.TableId
 import java.time.LocalDateTime
+import java.util.Date
 
 /**
  * 用户表
@@ -63,10 +64,10 @@ data class Users(
     /**
      * 创建时间
      */
-    var createdAt: LocalDateTime? = null,
+    var createdAt: Date? = null,
 
     /**
      * 修改时间
      */
-    var updatedAt: LocalDateTime? = null,
+    var updatedAt: Date? = null,
 )

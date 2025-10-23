@@ -29,4 +29,13 @@ class AuthController {
         userService.register(userDTO)
         return Result.success()
     }
+
+    @PostMapping("/login")
+    fun login(@RequestBody userDTO: UserDTO): Result.Response<MutableMap<String, Any>> {
+        log.info("Logging in user: $userDTO")
+        val token = userService.login(userDTO)
+        return Result.success(mutableMapOf<String, Any>
+            ("token" to token)
+        )
+    }
 }
