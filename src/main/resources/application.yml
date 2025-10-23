@@ -1,7 +1,20 @@
 spring:
   application:
     name: WindList
+  profiles:
+    active: dev
   datasource:
-    driver-class-name: org.postgresql.Driver
-    username: postgres
-    url: jdbc:postgresql://localhost:5432/wind_list
+    driver-class-name: ${spring.datasource.driver-class-name}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    url: ${spring.datasource.url}
+
+windlist:
+  jwt:
+    expiration-time: ${windlist.jwt.expiration-time}
+    secret-key: ${windlist.jwt.secret-key}
+    token-name: ${windlist.jwt.token-name}
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath*:/mapper/**/*.xml

@@ -1,5 +1,8 @@
+// kotlin
 package cn.luckierlove.windlist.entity
 
+import com.baomidou.mybatisplus.annotation.IdType
+import com.baomidou.mybatisplus.annotation.TableId
 import java.time.LocalDateTime
 
 /**
@@ -9,60 +12,61 @@ data class Users(
     /**
      * 用户Id
      */
-    var id: Long?,
+    @TableId(type = IdType.AUTO)
+    var id: Long? = null,
 
     /**
      * 用户名
      */
-    var username: String?,
+    var username: String? = null,
 
     /**
      * 邮箱
      */
-    var email: String?,
+    var email: String? = null,
 
     /**
      * 密码
      */
-    var password: String?,
+    var password: String? = null,
 
     /**
      * 昵称
      */
-    var nickname: String?,
+    var nickname: String? = null,
 
     /**
      * 头像URL
      */
-    var avatarUrl: String?,
+    var avatarUrl: String? = null,
 
     /**
      * 是否启用
      */
-    var enabled: Boolean?,
+    var enabled: Boolean? = null,
 
     /**
      * 账户是否过期
      */
-    var accountNonExpired: Boolean?,
+    var accountNonExpired: Boolean? = null,
 
     /**
      * 密码是否过期
      */
-    var credentialsNonExpired: Boolean?,
+    var credentialsNonExpired: Boolean? = null,
 
     /**
      * 账户是否锁定
      */
-    var accountNonLocked: Boolean?,
+    var accountNonLocked: Boolean? = null,
 
     /**
      * 创建时间
      */
-    var createdAt: LocalDateTime?,
+    var createdAt: LocalDateTime? = null,
 
     /**
      * 修改时间
      */
-    var updatedAt: LocalDateTime?,
+    var updatedAt: LocalDateTime? = null,
 )

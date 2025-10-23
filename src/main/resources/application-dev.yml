@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    url: jdbc:postgresql://localhost:5432/wind_list
+    password: 123456
+windlist:
+  jwt:
+    secret-key: WindListWindListWindListWindList
+    expiration-time: 86400000
+    token-name: bearer
