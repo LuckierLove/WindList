@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-aop")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.baomidou:mybatis-plus-spring-boot3-starter:3.5.14")
+    implementation("com.baomidou:mybatis-plus-jsqlparser:3.5.14")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.jsonwebtoken:jjwt-api:0.13.0")
     implementation("org.postgresql:postgresql")

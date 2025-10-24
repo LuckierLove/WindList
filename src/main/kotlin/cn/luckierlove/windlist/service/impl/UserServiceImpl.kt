@@ -24,7 +24,7 @@ import kotlin.random.Random
  * 用户服务实现类
  */
 @Service
-class UserServiceImpl : UserService, ServiceImpl<UserMapper, Users>() {
+class UserServiceImpl : UserService {
     @Resource
     private lateinit var userMapper: UserMapper
     @Resource

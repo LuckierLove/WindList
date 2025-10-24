@@ -1,20 +1,29 @@
 package cn.luckierlove.windlist.service.impl
 
+import cn.luckierlove.windlist.common.Result
+import cn.luckierlove.windlist.common.enums.TodoItemStatus
+import cn.luckierlove.windlist.constant.TodoItemConstant
 import cn.luckierlove.windlist.constant.TodoListsConstant
 import cn.luckierlove.windlist.context.BaseContext
+import cn.luckierlove.windlist.entity.TodoItems
 import cn.luckierlove.windlist.entity.TodoLists
+import cn.luckierlove.windlist.entity.dto.TodoItemDTO
 import cn.luckierlove.windlist.entity.dto.TodoListDTO
+import cn.luckierlove.windlist.mapper.TodoItemMapper
 import cn.luckierlove.windlist.mapper.TodoListMapper
 import cn.luckierlove.windlist.service.TodoListService
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page
 import jakarta.annotation.Resource
 import org.springframework.stereotype.Service
 
 @Service
-class TodoListServiceImpl: TodoListService, ServiceImpl<TodoListMapper, TodoLists>() {
+class TodoListServiceImpl: TodoListService {
     @Resource
     private lateinit var todoListMapper: TodoListMapper
+
+    @Resource
+    private lateinit var todoItemMapper: TodoItemMapper
 
     /**
      * 创建待办事项列表
@@ -62,5 +71,43 @@ class TodoListServiceImpl: TodoListService, ServiceImpl<TodoListMapper, TodoList
      */
     override fun deleteById(listId: Long) {
         todoListMapper.deleteById(listId)
+    }
+
+    /**
+     * 创建待办事项
+     */
+    override fun createTodoItem(listId: Long, todoItemDTO: TodoItemDTO) {
+        val todoItem = TodoItems().apply {
+            this.listId = listId
+            this.title = todoItemDTO.title
+            this.content = todoItemDTO.content
+            this.status = TodoItemStatus.PENDING
+            this.priority = todoItemDTO.priority
+            this.dueDate = todoItemDTO.dueDate
+            this.completedAt = null
+        }
+        todoItemMapper.insert(todoItem)
+    }
+
+    /**
+     * 根据待办事项列表id获取其所有待办事项
+     */
+    override fun getTodoItemsFromList(
+        listId: Long,
+        page: Long,
+        pageSize: Long,
+        status: TodoItemStatus?
+    ): Result.PageResponse<MutableList<TodoItems>> {
+        val wrapper: QueryWrapper<TodoItems> = QueryWrapper()
+        wrapper.eq(TodoItemConstant.LIST_ID_FILED, listId)
+        if(status != null) wrapper.eq(TodoListsConstant.STATUS_FIELD, status.toString())
+        val pageInfo = Page<TodoItems>(page, pageSize)
+        val pageResult = todoItemMapper.selectPage(pageInfo, wrapper)
+        return Result.pageSuccess(
+            data = pageResult.records,
+            total = pageResult.total,
+            page = pageResult.current,
+            pageSize = pageResult.size
+        )
     }
 }
