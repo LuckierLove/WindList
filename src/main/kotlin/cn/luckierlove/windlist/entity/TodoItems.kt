@@ -1,8 +1,9 @@
 package cn.luckierlove.windlist.entity
 
-import cn.luckierlove.windlist.constant.TodoItemPriority
-import cn.luckierlove.windlist.constant.TodoItemStatus
-import java.time.LocalDateTime
+import cn.luckierlove.windlist.common.enums.TodoItemPriority
+import cn.luckierlove.windlist.common.enums.TodoItemStatus
+import com.baomidou.mybatisplus.annotation.FieldFill
+import com.baomidou.mybatisplus.annotation.TableField
 import java.util.Date
 
 /**
@@ -52,10 +53,12 @@ data class TodoItems(
     /**
      * 创建日期
      */
+    @TableField(fill = FieldFill.INSERT)
     var createdAt: Date?,
 
     /**
      * 修改日期
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     var updatedAt: Date?,
 )

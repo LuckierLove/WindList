@@ -28,7 +28,6 @@ class JwtTokenInterceptor : HandlerInterceptor{
      * 在请求处理之前进行 JWT 令牌验证
      */
     override fun preHandle(request: HttpServletRequest, response: HttpServletResponse, handler: Any): Boolean {
-        if(handler !is HandlerMethod) return true
 
         val token = request.getHeader(jwtProperties.tokenName)
         if (token != null) {
@@ -41,6 +40,8 @@ class JwtTokenInterceptor : HandlerInterceptor{
                 BaseContext.setCurrentUserId(userId.toString().toLong())
                 true
             } catch (e: Exception) {
+                logger.warn("JWT parsing failed: {}", e.message)
+                logger.debug("JWT parse exception details", e)
                 response.status = HttpServletResponse.SC_UNAUTHORIZED
                 false
             }

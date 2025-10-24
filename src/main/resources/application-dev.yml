@@ -8,4 +8,4 @@ windlist:
   jwt:
     secret-key: WindListWindListWindListWindList
     expiration-time: 86400000
-    token-name: bearer
+    token-name: Authorization

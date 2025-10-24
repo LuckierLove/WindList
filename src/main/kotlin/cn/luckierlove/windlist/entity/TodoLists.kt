@@ -1,6 +1,7 @@
 package cn.luckierlove.windlist.entity
 
-import java.time.LocalDateTime
+import com.baomidou.mybatisplus.annotation.FieldFill
+import com.baomidou.mybatisplus.annotation.TableField
 import java.util.Date
 
 /**
@@ -10,30 +11,32 @@ data class TodoLists(
     /**
      * 主键
      */
-    var id: Long?,
+    var id: Long? = null,
 
     /**
      * 用户Id
      */
-    var userId: Long?,
+    var userId: Long? = null,
 
     /**
      * 事项清单名称
      */
-    var name: String?,
+    var name: String? = null,
 
     /**
      * 描述
      */
-    var description: String?,
+    var description: String? = null,
 
     /**
      * 创建时间
      */
-    var createdAt: Date?,
+    @TableField(fill = FieldFill.INSERT)
+    var createdAt: Date? = null,
 
     /**
      * 修改时间
      */
-    var updatedAt: Date?,
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    var updatedAt: Date? = null,
 )

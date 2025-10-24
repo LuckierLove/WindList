@@ -1,5 +1,7 @@
 package cn.luckierlove.windlist.entity
 
+import com.baomidou.mybatisplus.annotation.FieldFill
+import com.baomidou.mybatisplus.annotation.TableField
 import java.time.LocalDateTime
 import java.util.Date
 
@@ -30,5 +32,6 @@ data class Tags(
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     var createAt: Date?,
 )

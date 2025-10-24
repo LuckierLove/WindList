@@ -49,7 +49,7 @@ class GlobalExceptionHandler {
 
                 return Result.error("数据已存在，违反唯一约束")
             }
-
+        ex.printStackTrace()
         return Result.error(ex.message ?: "未知错误")
     }
 }

@@ -1,5 +1,7 @@
 package cn.luckierlove.windlist.entity
 
+import com.baomidou.mybatisplus.annotation.FieldFill
+import com.baomidou.mybatisplus.annotation.TableField
 import java.time.LocalDateTime
 import java.util.Date
 
@@ -30,10 +32,12 @@ data class SubTasks(
     /**
      * 创建时间
      */
+    @TableField(fill = FieldFill.INSERT)
     var createdAt: Date?,
 
     /**
      * 修改时间
      */
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     var updatedAt: Date?,
 )
