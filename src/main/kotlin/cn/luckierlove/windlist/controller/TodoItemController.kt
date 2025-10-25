@@ -1,6 +1,7 @@
 package cn.luckierlove.windlist.controller
 
 import cn.luckierlove.windlist.common.Result
+import cn.luckierlove.windlist.entity.dto.SubTaskDTO
 import cn.luckierlove.windlist.entity.dto.TodoItemDTO
 import cn.luckierlove.windlist.entity.vo.TodoItemVO
 import cn.luckierlove.windlist.service.TodoItemService
@@ -46,6 +47,37 @@ class TodoItemController {
     fun deleteItem(@PathVariable itemId: Long): Result.Response<String> {
         log.info("Delete the todo item $itemId")
         todoItemService.deleteTodoItem(itemId)
+        return Result.success()
+    }
+
+    /**
+     * 为待办事项添加子任务
+     */
+    @PostMapping("/{itemId}/subtasks")
+    fun addSubTask(@PathVariable itemId: Long, @RequestBody subTaskDTO: SubTaskDTO): Result.Response<String> {
+        log.info("Add a sub task to todo item $itemId")
+        todoItemService.addSubTask(itemId, subTaskDTO)
+        return Result.success()
+    }
+
+    /**
+     * 为待办事项添加标签
+     */
+    @PostMapping("/{itemId}/tags/{tagId}")
+    fun addTagToItem(@PathVariable itemId: Long, @PathVariable tagId: Long): Result.Response<String> {
+        log.info("Add tag $tagId to todo item $itemId")
+        todoItemService.addTagToItem(itemId, tagId)
+        return Result.success()
+    }
+
+    /**
+     * 为待办事项移除标签
+     */
+    @DeleteMapping("/{itemId}/tags/{tagId}")
+    fun removeTagFromItem(@PathVariable itemId: Long, @PathVariable tagId
+: Long): Result.Response<String> {
+        log.info("Remove tag $tagId from todo item $itemId")
+        todoItemService.removeTagFromItem(itemId, tagId)
         return Result.success()
     }
 }

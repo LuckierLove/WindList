@@ -5,6 +5,7 @@ import cn.luckierlove.windlist.entity.Tags
 import cn.luckierlove.windlist.entity.TodoItems
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import org.apache.ibatis.annotations.Delete
+import org.apache.ibatis.annotations.Insert
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Select
 
@@ -21,4 +22,10 @@ interface TodoItemMapper : BaseMapper<TodoItems> {
 
     @Delete("delete from todo_item_tags where item_id = #{todoItemId}")
     fun deleteRelativeTagsByTodoItemId(todoItemId: Long)
+
+    @Insert("insert into todo_item_tags (item_id, tag_id) values (#{itemId}, #{tagId})")
+    fun addTagToItem(itemId: Long, tagId: Long)
+
+    @Delete("delete from todo_item_tags where item_id = #{itemId} and tag_id = #{tagId}")
+    fun removeTagFromItem(itemId: Long, tagId: Long)
 }

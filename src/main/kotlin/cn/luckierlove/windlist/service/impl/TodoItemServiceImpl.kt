@@ -3,8 +3,10 @@ package cn.luckierlove.windlist.service.impl
 import cn.luckierlove.windlist.entity.SubTasks
 import cn.luckierlove.windlist.entity.Tags
 import cn.luckierlove.windlist.entity.TodoItems
+import cn.luckierlove.windlist.entity.dto.SubTaskDTO
 import cn.luckierlove.windlist.entity.dto.TodoItemDTO
 import cn.luckierlove.windlist.entity.vo.TodoItemVO
+import cn.luckierlove.windlist.mapper.SubTaskMapper
 import cn.luckierlove.windlist.mapper.TodoItemMapper
 import cn.luckierlove.windlist.service.TodoItemService
 import jakarta.annotation.Resource
@@ -16,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional
 class TodoItemServiceImpl: TodoItemService {
     @Resource
     private lateinit var todoItemMapper: TodoItemMapper
+    @Resource
+    private lateinit var subTaskMapper: SubTaskMapper
 
     /**
      * 根据待办事项id获取其详细信息
@@ -57,5 +61,31 @@ class TodoItemServiceImpl: TodoItemService {
         todoItemMapper.deleteRelativeTagsByTodoItemId(itemId)
         // 删除待办事项本身
         todoItemMapper.deleteById(itemId)
+    }
+
+    /**
+     * 为待办事项添加子任务
+     */
+    override fun addSubTask(itemId: Long, subTaskDTO: SubTaskDTO) {
+        val subTask = SubTasks().apply {
+            this.itemId = itemId
+            this.title = subTaskDTO.title
+        }
+
+        subTaskMapper.insert(subTask)
+    }
+
+    /**
+     * 为待办事项添加标签
+     */
+    override fun addTagToItem(itemId: Long, tagId: Long) {
+        todoItemMapper.addTagToItem(itemId, tagId)
+    }
+
+    /**
+     * 从待办事项移除标签
+     */
+    override fun removeTagFromItem(itemId: Long, tagId: Long) {
+        todoItemMapper.removeTagFromItem(itemId, tagId)
     }
 }
