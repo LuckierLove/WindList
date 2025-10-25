@@ -8,7 +8,6 @@ import cn.luckierlove.windlist.constant.UserMessageConstant
 import cn.luckierlove.windlist.entity.Users
 import cn.luckierlove.windlist.entity.dto.UserDTO
 import cn.luckierlove.windlist.mapper.UserMapper
-import cn.luckierlove.windlist.mapper.UserRoleMapper
 import cn.luckierlove.windlist.service.UserService
 import com.baomidou.mybatisplus.extension.service.IService
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl
@@ -27,8 +26,6 @@ import kotlin.random.Random
 class UserServiceImpl : UserService {
     @Resource
     private lateinit var userMapper: UserMapper
-    @Resource
-    private lateinit var userRoleMapper: UserRoleMapper
     @Resource
     private lateinit var jwtUtil: JwtUtil
     /**
@@ -58,7 +55,7 @@ class UserServiceImpl : UserService {
             this.enabled = UserConstant.DEFAULT_ENABLED
         }
         userMapper.insert(user)
-        userRoleMapper.saveUserRole(user.id!!, UserConstant.DEFAULT_ROLE)
+        userMapper.saveUserRole(user.id!!, UserConstant.DEFAULT_ROLE)
     }
 
     /**
